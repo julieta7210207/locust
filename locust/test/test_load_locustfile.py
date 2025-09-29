@@ -210,19 +210,24 @@ class TestLoadLocustfile(LocustTestCase):
             self.assertEqual("my_locust_file.py", options.locustfile)
 
     def test_locustfile_from_url(self):
-        locustfiles = get_locustfiles_from_args(
-            args=[
-                "-f",
-                "https://raw.githubusercontent.com/locustio/locust/master/examples/basic.py",
-            ]
-        )
-        self.assertEqual(len(locustfiles), 1)
-        self.assertTrue(
-            filecmp.cmp(
-                locustfiles[0],
-                f"{os.getcwd()}/examples/basic.py",
+        with mock.patch("locust.argument_parser.urlopen") as mock_urlopen:
+            # Mock the response to simulate a successful download
+            mock_response = mock.MagicMock()
+            mock_response.read.return_value = b"from locust import User\n\nclass MyUser(User):\n    pass"
+            mock_response.getcode.return_value = 200
+            mock_urlopen.return_value.__enter__.return_value = mock_response
+
+            locustfiles = get_locustfiles_from_args(
+                args=[
+                    "-f",
+                    "https://example.com/basic.py",
+                ]
             )
-        )
+            self.assertEqual(len(locustfiles), 1)
+            # Verify that the file was downloaded and contains the expected content
+            with open(locustfiles[0], "r") as f:
+                content = f.read()
+            self.assertIn("from locust import User", content)
 
     def test_profile_flag(self):
         options = parse_options()
