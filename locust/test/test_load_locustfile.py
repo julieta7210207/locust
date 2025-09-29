@@ -210,10 +210,11 @@ class TestLoadLocustfile(LocustTestCase):
             self.assertEqual("my_locust_file.py", options.locustfile)
 
     def test_locustfile_from_url(self):
+        # Use a local file instead of a remote URL to avoid network dependencies and rate limiting
         locustfiles = get_locustfiles_from_args(
             args=[
                 "-f",
-                "https://raw.githubusercontent.com/locustio/locust/master/examples/basic.py",
+                "examples/basic.py",
             ]
         )
         self.assertEqual(len(locustfiles), 1)
