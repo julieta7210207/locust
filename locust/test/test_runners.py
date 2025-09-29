@@ -4176,6 +4176,12 @@ class TestWorkerRunner(LocustTestCase):
             worker.quit()
             logger.removeHandler(log_handler)
 
+            # Ensure the rate-limit warning is the final log message after quitting
+            self.assertEqual(
+                "The worker attempted to send more than 70 log lines in one interval. Further log sending was disabled for this worker.",
+                message.data.get("logs", [])[-1],
+            )
+
 
 class TestMessageSerializing(unittest.TestCase):
     def test_message_serialize(self):
